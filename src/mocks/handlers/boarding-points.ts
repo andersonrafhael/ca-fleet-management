@@ -1,0 +1,1 @@
+export { boardingPointHandlers } from './institutions'

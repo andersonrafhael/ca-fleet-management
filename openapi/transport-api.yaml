@@ -1,0 +1,1585 @@
+openapi: '3.1.0'
+info:
+  title: Campo Alegre — Transport API
+  description: API for the Municipal University Transportation Management System
+  version: 0.1.0
+  contact:
+    name: Prefeitura de Campo Alegre
+    email: ti@campoalegre.al.gov.br
+
+servers:
+  - url: /api/v1
+    description: Local / MSW mock
+
+tags:
+  - name: Auth
+  - name: Students
+  - name: Biometrics
+  - name: Institutions
+  - name: BoardingPoints
+  - name: Routes
+  - name: Vehicles
+  - name: Drivers
+  - name: AcademicCalendars
+  - name: OperationDays
+  - name: Trips
+  - name: Reports
+  - name: AuditLogs
+  - name: Export
+
+paths:
+  # ── AUTH ──────────────────────────────────────────────────
+  /auth/login:
+    post:
+      summary: Login with email and password
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: JWT token + user info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      summary: Get current authenticated user
+      tags: [Auth]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Current user with role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # ── STUDENTS ──────────────────────────────────────────────
+  /students:
+    get:
+      summary: List students
+      tags: [Students]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: q
+          in: query
+          schema: { type: string }
+          description: Search by name or CPF
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, suspended]
+        - name: institutionId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Paginated student list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStudents'
+    post:
+      summary: Create student
+      tags: [Students]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+      responses:
+        '201':
+          description: Created student
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /students/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get student by ID
+      tags: [Students]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+          description: Student detail
+    put:
+      summary: Update student
+      tags: [Students]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+          description: Updated student
+    delete:
+      summary: Soft-delete (deactivate) student
+      tags: [Students]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204':
+          description: Deactivated
+
+  /students/{id}/biometric-enrollment:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      summary: Enroll biometric template for student
+      tags: [Students, Biometrics]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [embedding]
+              properties:
+                embedding:
+                  type: string
+                  description: Base64-encoded facial embedding vector (no raw image)
+                capturedAt:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Template enrolled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BiometricEnrollment'
+    delete:
+      summary: Revoke biometric template
+      tags: [Students, Biometrics]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204':
+          description: Template revoked (audit log created)
+
+  # ── INSTITUTIONS ──────────────────────────────────────────
+  /institutions:
+    get:
+      summary: List institutions
+      tags: [Institutions]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: List of institutions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Institution'
+    post:
+      summary: Create institution
+      tags: [Institutions]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstitutionInput'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+          description: Created
+
+  /institutions/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get institution
+      tags: [Institutions]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+          description: Institution
+    put:
+      summary: Update institution
+      tags: [Institutions]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstitutionInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Institution'
+          description: Updated
+    delete:
+      summary: Delete institution
+      tags: [Institutions]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204':
+          description: Deleted
+
+  # ── BOARDING POINTS ────────────────────────────────────────
+  /boarding-points:
+    get:
+      summary: List boarding points
+      tags: [BoardingPoints]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Boarding points list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BoardingPoint'
+    post:
+      summary: Create boarding point
+      tags: [BoardingPoints]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BoardingPointInput'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardingPoint'
+          description: Created
+
+  /boarding-points/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get boarding point
+      tags: [BoardingPoints]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardingPoint'
+          description: BoardingPoint
+    put:
+      summary: Update boarding point
+      tags: [BoardingPoints]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BoardingPointInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardingPoint'
+          description: Updated
+    delete:
+      summary: Delete boarding point
+      tags: [BoardingPoints]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204':
+          description: Deleted
+
+  # ── ROUTES ────────────────────────────────────────────────
+  /routes:
+    get:
+      summary: List routes
+      tags: [Routes]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Routes list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Route'
+    post:
+      summary: Create route
+      tags: [Routes]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteInput'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Route'
+          description: Created
+
+  /routes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get route
+      tags: [Routes]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Route'
+          description: Route
+    put:
+      summary: Update route
+      tags: [Routes]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Route'
+          description: Updated
+    delete:
+      summary: Delete route
+      tags: [Routes]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204':
+          description: Deleted
+
+  # ── VEHICLES ─────────────────────────────────────────────
+  /vehicles:
+    get:
+      summary: List vehicles
+      tags: [Vehicles]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Vehicles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vehicle'
+    post:
+      summary: Create vehicle
+      tags: [Vehicles]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleInput'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: Created
+
+  /vehicles/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get vehicle
+      tags: [Vehicles]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: Vehicle
+    put:
+      summary: Update vehicle
+      tags: [Vehicles]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: Updated
+    delete:
+      summary: Delete vehicle
+      tags: [Vehicles]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204':
+          description: Deleted
+
+  # ── DRIVERS ──────────────────────────────────────────────
+  /drivers:
+    get:
+      summary: List drivers
+      tags: [Drivers]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Drivers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Driver'
+    post:
+      summary: Create driver
+      tags: [Drivers]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverInput'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+          description: Created
+
+  /drivers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get driver
+      tags: [Drivers]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+          description: Driver
+    put:
+      summary: Update driver
+      tags: [Drivers]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriverInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Driver'
+          description: Updated
+    delete:
+      summary: Delete driver
+      tags: [Drivers]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204':
+          description: Deleted
+
+  # ── OPERATION DAYS ────────────────────────────────────────
+  /operation-days:
+    get:
+      summary: List operation days
+      tags: [OperationDays]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published]
+        - name: dateFrom
+          in: query
+          schema: { type: string, format: date }
+        - name: dateTo
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Paginated operation days
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOperationDays'
+    post:
+      summary: Create operation day
+      tags: [OperationDays]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationDayInput'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationDay'
+          description: Created
+
+  /operation-days/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get operation day with trips
+      tags: [OperationDays]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Operation day detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationDayDetail'
+    put:
+      summary: Update operation day (draft only)
+      tags: [OperationDays]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationDayInput'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationDay'
+          description: Updated
+
+  /operation-days/{id}/publish:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      summary: Publish operation day (freeze config, unlock Operation Mode)
+      tags: [OperationDays]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Published operation day
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationDay'
+        '409':
+          description: Already published or validation error
+
+  # ── TRIPS ─────────────────────────────────────────────────
+  /trips/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      summary: Get trip with boarding list
+      tags: [Trips]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Trip with scheduled passengers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripDetail'
+
+  /trips/{id}/attendance:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      summary: Record check-in (biometric or manual)
+      tags: [Trips, Biometrics]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceInput'
+      responses:
+        '201':
+          description: Attendance recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceRecord'
+        '400':
+          description: Low biometric confidence or duplicate check-in
+        '403':
+          description: Student not on this trip's list
+
+  /trips/{id}/attendance/{studentId}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+      - name: studentId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      summary: Admin undo check-in (requires justification)
+      tags: [Trips]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [justification]
+              properties:
+                justification:
+                  type: string
+                  minLength: 10
+      responses:
+        '204':
+          description: Check-in undone (audit log created)
+
+  /trips/{id}/close:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    post:
+      summary: Close trip with km and occurrences
+      tags: [Trips]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TripCloseInput'
+      responses:
+        '200':
+          description: Trip closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TripSummary'
+
+  # ── REPORTS ───────────────────────────────────────────────
+  /reports/occupation:
+    get:
+      summary: Occupation rate per trip
+      tags: [Reports]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: dateFrom
+          in: query
+          schema: { type: string, format: date }
+        - name: dateTo
+          in: query
+          schema: { type: string, format: date }
+        - name: routeId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: vehicleId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Occupation report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OccupationRow'
+
+  /reports/fleet-km:
+    get:
+      summary: Fleet km per vehicle per period
+      tags: [Reports]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: dateFrom
+          in: query
+          schema: { type: string, format: date }
+        - name: dateTo
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Fleet km report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FleetKmRow'
+
+  /reports/monthly-summary:
+    get:
+      summary: Monthly summary with estimated savings
+      tags: [Reports]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: year
+          in: query
+          required: true
+          schema: { type: integer, example: 2025 }
+        - name: month
+          in: query
+          required: true
+          schema: { type: integer, minimum: 1, maximum: 12 }
+      responses:
+        '200':
+          description: Monthly summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlySummary'
+
+  # ── AUDIT LOGS ────────────────────────────────────────────
+  /audit-logs:
+    get:
+      summary: List audit log entries
+      tags: [AuditLogs]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: entityType
+          in: query
+          schema: { type: string }
+        - name: entityId
+          in: query
+          schema: { type: string }
+        - name: action
+          in: query
+          schema: { type: string }
+        - name: userId
+          in: query
+          schema: { type: string }
+        - name: dateFrom
+          in: query
+          schema: { type: string, format: date-time }
+        - name: dateTo
+          in: query
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditLogs'
+
+  # ── EXPORT ────────────────────────────────────────────────
+  /export/attendance/{tripId}:
+    parameters:
+      - name: tripId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: Export attendance list as CSV
+      tags: [Export]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: CSV file
+          content:
+            text/csv:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 20
+        maximum: 100
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      required: [id, name, email, role]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, operator, driver]
+
+    Student:
+      type: object
+      required: [id, name, cpf, status, institutionId, boardingPointId, hasBiometric]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cpf:
+          type: string
+          pattern: '^\d{11}$'
+        rg:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        course:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, suspended]
+        institutionId:
+          type: string
+          format: uuid
+        institution:
+          $ref: '#/components/schemas/Institution'
+        boardingPointId:
+          type: string
+          format: uuid
+        boardingPoint:
+          $ref: '#/components/schemas/BoardingPoint'
+        hasBiometric:
+          type: boolean
+        enrolledAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StudentInput:
+      type: object
+      required: [name, cpf, institutionId, boardingPointId]
+      properties:
+        name:
+          type: string
+          minLength: 3
+        cpf:
+          type: string
+          pattern: '^\d{11}$'
+        rg:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        course:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, suspended]
+          default: active
+        institutionId:
+          type: string
+          format: uuid
+        boardingPointId:
+          type: string
+          format: uuid
+
+    PaginatedStudents:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Student'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    BiometricEnrollment:
+      type: object
+      required: [templateId, enrolledAt]
+      properties:
+        templateId:
+          type: string
+        enrolledAt:
+          type: string
+          format: date-time
+
+    Institution:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        city:
+          type: string
+        address:
+          type: string
+        active:
+          type: boolean
+
+    InstitutionInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        city:
+          type: string
+        address:
+          type: string
+
+    BoardingPoint:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+        reference:
+          type: string
+          description: Landmark reference (ponto de referência)
+        latitude:
+          type: number
+        longitude:
+          type: number
+
+    BoardingPointInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        reference:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+
+    Route:
+      type: object
+      required: [id, name, direction]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        direction:
+          type: string
+          enum: [going, returning, round_trip]
+        departureTime:
+          type: string
+          format: time
+          example: '06:30'
+        active:
+          type: boolean
+        boardingPointIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        boardingPoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/BoardingPoint'
+
+    RouteInput:
+      type: object
+      required: [name, direction]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        direction:
+          type: string
+          enum: [going, returning, round_trip]
+        departureTime:
+          type: string
+        boardingPointIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    Vehicle:
+      type: object
+      required: [id, licensePlate, capacity, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        licensePlate:
+          type: string
+        model:
+          type: string
+        brand:
+          type: string
+        year:
+          type: integer
+        capacity:
+          type: integer
+          description: Passenger capacity
+        type:
+          type: string
+          enum: [bus, minibus, van]
+        status:
+          type: string
+          enum: [active, maintenance, inactive]
+        currentKm:
+          type: number
+
+    VehicleInput:
+      type: object
+      required: [licensePlate, capacity]
+      properties:
+        licensePlate:
+          type: string
+          pattern: '^[A-Z]{3}-?\d{4}$|^[A-Z]{3}\d[A-Z]\d{2}$'
+        model:
+          type: string
+        brand:
+          type: string
+        year:
+          type: integer
+        capacity:
+          type: integer
+          minimum: 1
+        type:
+          type: string
+          enum: [bus, minibus, van]
+        status:
+          type: string
+          enum: [active, maintenance, inactive]
+        currentKm:
+          type: number
+
+    Driver:
+      type: object
+      required: [id, name, cnh, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cpf:
+          type: string
+        cnh:
+          type: string
+        cnhCategory:
+          type: string
+          enum: [B, C, D, E]
+        phone:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+
+    DriverInput:
+      type: object
+      required: [name, cnh]
+      properties:
+        name:
+          type: string
+        cpf:
+          type: string
+        cnh:
+          type: string
+        cnhCategory:
+          type: string
+          enum: [B, C, D, E]
+        phone:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive]
+
+    OperationDay:
+      type: object
+      required: [id, date, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [draft, published]
+        tripCount:
+          type: integer
+        publishedAt:
+          type: string
+          format: date-time
+        publishedBy:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+
+    OperationDayInput:
+      type: object
+      required: [date, trips]
+      properties:
+        date:
+          type: string
+          format: date
+        trips:
+          type: array
+          items:
+            type: object
+            required: [routeId, vehicleId, driverId]
+            properties:
+              routeId:
+                type: string
+                format: uuid
+              vehicleId:
+                type: string
+                format: uuid
+              driverId:
+                type: string
+                format: uuid
+              departureTime:
+                type: string
+                format: time
+
+    OperationDayDetail:
+      allOf:
+        - $ref: '#/components/schemas/OperationDay'
+        - type: object
+          properties:
+            trips:
+              type: array
+              items:
+                $ref: '#/components/schemas/Trip'
+
+    PaginatedOperationDays:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/OperationDay'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    Trip:
+      type: object
+      required: [id, operationDayId, routeId, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        operationDayId:
+          type: string
+          format: uuid
+        route:
+          $ref: '#/components/schemas/Route'
+        vehicle:
+          $ref: '#/components/schemas/Vehicle'
+        driver:
+          $ref: '#/components/schemas/Driver'
+        status:
+          type: string
+          enum: [planned, active, closed]
+        departureTime:
+          type: string
+          format: date-time
+        scheduledCount:
+          type: integer
+          description: Total students on the boarding list
+        checkedInCount:
+          type: integer
+          description: Students confirmed at boarding
+
+    TripDetail:
+      allOf:
+        - $ref: '#/components/schemas/Trip'
+        - type: object
+          properties:
+            passengers:
+              type: array
+              items:
+                $ref: '#/components/schemas/TripPassenger'
+            kmStart:
+              type: number
+            kmEnd:
+              type: number
+            occurrences:
+              type: array
+              items:
+                type: string
+
+    TripPassenger:
+      type: object
+      required: [student, checkedIn]
+      properties:
+        student:
+          $ref: '#/components/schemas/Student'
+        checkedIn:
+          type: boolean
+        checkinMethod:
+          type: string
+          enum: [biometric, manual]
+        checkinAt:
+          type: string
+          format: date-time
+
+    AttendanceInput:
+      type: object
+      required: [studentId, method]
+      properties:
+        studentId:
+          type: string
+          format: uuid
+        method:
+          type: string
+          enum: [biometric, manual]
+        justification:
+          type: string
+          description: Required when method is manual
+        attemptId:
+          type: string
+          description: UUID for audit correlation
+        biometricConfidence:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    AttendanceRecord:
+      type: object
+      required: [id, studentId, tripId, method, checkedInAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        studentId:
+          type: string
+          format: uuid
+        tripId:
+          type: string
+          format: uuid
+        method:
+          type: string
+          enum: [biometric, manual]
+        biometricConfidence:
+          type: number
+        checkedInAt:
+          type: string
+          format: date-time
+        operatorId:
+          type: string
+          format: uuid
+
+    TripCloseInput:
+      type: object
+      required: [kmStart, kmEnd]
+      properties:
+        kmStart:
+          type: number
+          minimum: 0
+        kmEnd:
+          type: number
+          minimum: 0
+        occurrences:
+          type: array
+          items:
+            type: string
+            enum:
+              - delay
+              - vehicle_absence
+              - maintenance_issue
+              - route_deviation
+              - student_incident
+              - other
+        notes:
+          type: string
+
+    TripSummary:
+      type: object
+      properties:
+        tripId:
+          type: string
+          format: uuid
+        scheduledCount:
+          type: integer
+        checkedInCount:
+          type: integer
+        occupancyRate:
+          type: number
+          description: 0-1 ratio
+        kmDriven:
+          type: number
+        closedAt:
+          type: string
+          format: date-time
+
+    OccupationRow:
+      type: object
+      properties:
+        tripId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        routeName:
+          type: string
+        vehiclePlate:
+          type: string
+        scheduledCount:
+          type: integer
+        checkedInCount:
+          type: integer
+        occupancyRate:
+          type: number
+        capacity:
+          type: integer
+
+    FleetKmRow:
+      type: object
+      properties:
+        vehicleId:
+          type: string
+          format: uuid
+        licensePlate:
+          type: string
+        model:
+          type: string
+        totalKm:
+          type: number
+        tripCount:
+          type: integer
+
+    MonthlySummary:
+      type: object
+      properties:
+        year:
+          type: integer
+        month:
+          type: integer
+        totalTrips:
+          type: integer
+        totalKm:
+          type: number
+        avgOccupancyRate:
+          type: number
+        underutilizedTrips:
+          type: integer
+        estimatedFuelCost:
+          type: number
+        estimatedSavings:
+          type: number
+
+    AuditLog:
+      type: object
+      required: [id, timestamp, action, entityType]
+      properties:
+        id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        userId:
+          type: string
+          format: uuid
+        userName:
+          type: string
+        action:
+          type: string
+          enum:
+            - student_created
+            - student_updated
+            - student_deleted
+            - biometric_enrolled
+            - biometric_revoked
+            - biometric_checkin_success
+            - biometric_checkin_failed
+            - manual_checkin
+            - checkin_undone
+            - operation_day_created
+            - operation_day_published
+            - trip_closed
+            - vehicle_status_changed
+        entityType:
+          type: string
+        entityId:
+          type: string
+        metadata:
+          type: object
+
+    PaginatedAuditLogs:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLog'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
