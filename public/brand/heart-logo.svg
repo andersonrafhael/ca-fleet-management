@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Campo Alegre Heart Logo - Stylized -->
+  <defs>
+    <clipPath id="heart-clip">
+      <path d="M60 108C60 108 10 72 10 40C10 22 24 10 40 10C50 10 58 16 60 20C62 16 70 10 80 10C96 10 110 22 110 40C110 72 60 108 60 108Z"/>
+    </clipPath>
+  </defs>
+  <!-- Heart shape with brand colors -->
+  <g clip-path="url(#heart-clip)">
+    <!-- Red base -->
+    <path d="M10 10L60 110L10 110Z" fill="#DD1111"/>
+    <!-- Orange -->
+    <path d="M25 10L60 95L20 110L10 90Z" fill="#EE6600"/>
+    <!-- Yellow -->
+    <path d="M40 10L60 80L30 100Z" fill="#FFCC00"/>
+    <!-- Blue main -->
+    <path d="M55 10L110 10L110 110L60 110Z" fill="#0000FF"/>
+    <!-- Blue mid arc -->
+    <path d="M45 20L80 10L110 60L60 110L40 90Z" fill="#0099DD"/>
+    <!-- Blue light arc -->
+    <path d="M50 40L90 25L110 80L60 108L45 75Z" fill="#66CCFF"/>
+    <!-- Green -->
+    <path d="M55 60L100 50L110 100L60 108Z" fill="#00AA44"/>
+  </g>
+  <!-- Heart outline for crispness -->
+  <path d="M60 108C60 108 10 72 10 40C10 22 24 10 40 10C50 10 58 16 60 20C62 16 70 10 80 10C96 10 110 22 110 40C110 72 60 108 60 108Z" stroke="none" fill="none"/>
+</svg>

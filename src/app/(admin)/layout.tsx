@@ -13,11 +13,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 // Separated so RouteGuard can pass session user eventually
 function AdminShell({ children }: { children: React.ReactNode }) {
     return (
-        <div className="flex h-screen overflow-hidden bg-slate-50">
+        <div className="flex h-screen overflow-hidden bg-[#F6F8FA]">
             <Sidebar />
             <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-                <Topbar title="" />
-                <main className="flex-1 overflow-y-auto p-6">{children}</main>
+                <Topbar />
+                <main className="flex-1 overflow-y-auto px-6 py-6 lg:px-8">
+                    <div className="max-w-[1400px] mx-auto animate-[fade-in_0.3s_ease-out]">
+                        {children}
+                    </div>
+                </main>
             </div>
         </div>
     )

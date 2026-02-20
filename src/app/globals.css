@@ -2,6 +2,7 @@
 
 /* ─── Tailwind v4: Brand tokens via @theme ──────────────────────── */
 @theme {
+  /* Brand colors — Campo Alegre heart identity */
   --color-brand-blue: #0000FF;
   --color-brand-blue-mid: #0099DD;
   --color-brand-blue-light: #66CCFF;
@@ -9,14 +10,25 @@
   --color-brand-orange: #EE6600;
   --color-brand-yellow: #FFCC00;
   --color-brand-green: #00AA44;
+
+  /* Sidebar */
   --color-sidebar: #0F172A;
   --color-sidebar-accent: #1E293B;
+
+  /* Typography */
   --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-up: slide-up 0.3s ease-out;
+  --animate-slide-in-left: slide-in-left 0.25s ease-out;
+  --animate-shimmer: shimmer 1.5s infinite;
+  --animate-scale-in: scale-in 0.2s ease-out;
 }
 
 /* ─── CSS vars for shadcn/ui ────────────────────────────────────── */
 :root {
-  --background: 0 0% 99%;
+  --background: 220 20% 98%;
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
@@ -24,18 +36,30 @@
   --popover-foreground: 222 47% 11%;
   --primary: 240 100% 50%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 210 40% 96%;
+  --secondary: 214 32% 96%;
   --secondary-foreground: 222 47% 11%;
-  --muted: 210 40% 96%;
+  --muted: 220 14% 96%;
   --muted-foreground: 215 16% 47%;
-  --accent: 210 40% 96%;
+  --accent: 214 32% 96%;
   --accent-foreground: 222 47% 11%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
   --ring: 240 100% 50%;
-  --radius: 0.5rem;
+  --radius: 0.625rem;
+
+  /* Semantic shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+  --shadow-card-hover: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+
+  /* Brand gradient */
+  --gradient-brand: linear-gradient(135deg, #0000FF 0%, #0099DD 100%);
+  --gradient-brand-light: linear-gradient(135deg, #0000FF08 0%, #0099DD08 100%);
 }
 
 /* ─── Base ──────────────────────────────────────────────────────── */
@@ -50,8 +74,11 @@ body {
   color: hsl(var(--foreground));
   font-family: var(--font-inter, system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
+/* ─── Custom scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -62,11 +89,117 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(0 0% 50% / 0.3);
+  background: hsl(220 13% 70% / 0.3);
   border-radius: 3px;
 }
 
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(220 13% 60% / 0.5);
+}
+
+/* ─── Focus visible ─────────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
+}
+
+/* ─── Reduced motion ────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Keyframes ─────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ─── Utility classes ───────────────────────────────────────────── */
+.card-shadow {
+  box-shadow: var(--shadow-card);
+}
+
+.card-shadow-hover {
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease;
+}
+
+.card-shadow-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.gradient-brand {
+  background: var(--gradient-brand);
+}
+
+.gradient-brand-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Selection ─────────────────────────────────────────────────── */
+::selection {
+  background-color: hsl(240 100% 50% / 0.15);
+  color: hsl(var(--foreground));
 }
