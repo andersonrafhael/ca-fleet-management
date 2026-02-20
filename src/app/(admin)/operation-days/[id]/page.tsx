@@ -65,7 +65,7 @@ export default function OperationDayDetailPage({ params }: { params: Promise<{ i
                     <button
                         onClick={handlePublish}
                         disabled={publishing || (data.trips?.length || 0) === 0}
-                        className="rounded-lg bg-[#0000FF] px-5 py-2 text-sm font-semibold text-white hover:bg-[#0000CC] disabled:opacity-60 transition-colors flex items-center gap-2 shadow-sm"
+                        className="rounded-xl bg-[#0000FF] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0000DD] hover:shadow-md hover:shadow-blue-500/20 disabled:opacity-60 transition-all duration-200 flex items-center gap-2 shadow-sm"
                     >
                         {publishing ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <CheckCircle2Icon className="h-4 w-4" />}
                         Publicar Dia de Operação

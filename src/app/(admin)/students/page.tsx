@@ -131,8 +131,8 @@ export default function StudentsPage() {
                 </div>
                 <Link
                     href="/students/new"
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#0000FF] px-4 py-2 text-sm font-semibold text-white
-                     hover:bg-[#0000CC] transition-colors"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#0000FF] px-5 py-2.5 text-sm font-semibold text-white
+                     hover:bg-[#0000DD] hover:shadow-md hover:shadow-blue-500/20 transition-all duration-200"
                 >
                     <PlusIcon className="h-4 w-4" />
                     Novo aluno
@@ -145,9 +145,9 @@ export default function StudentsPage() {
                     <button
                         key={s}
                         onClick={() => setStatusFilter(s)}
-                        className={`rounded-lg px-3 py-1.5 text-sm font-medium border transition-colors ${statusFilter === s
-                                ? 'bg-[#0000FF] text-white border-[#0000FF]'
-                                : 'border-slate-200 text-slate-600 hover:border-slate-400'
+                        className={`rounded-xl px-3.5 py-1.5 text-sm font-medium border transition-all duration-200 cursor-pointer ${statusFilter === s
+                            ? 'bg-[#0000FF] text-white border-[#0000FF] shadow-sm shadow-blue-500/20'
+                            : 'border-slate-200 text-slate-600 hover:border-slate-400 hover:bg-slate-50'
                             }`}
                     >
                         {s === '' ? 'Todos' : STATUS_LABELS[s]}

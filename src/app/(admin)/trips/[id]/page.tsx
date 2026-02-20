@@ -172,7 +172,7 @@ export default function TripBoardingPage({ params }: { params: Promise<{ id: str
                                             <button
                                                 onClick={() => handleCheckin(p.student.id, 'biometric')}
                                                 disabled={actionLoading === p.student.id}
-                                                className="rounded-lg bg-[#0000FF] hover:bg-[#0000CC] text-white px-3 py-2 text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                                                className="rounded-xl bg-[#0000FF] hover:bg-[#0000DD] text-white px-3.5 py-2 text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 shadow-sm hover:shadow-md hover:shadow-blue-500/20 disabled:opacity-50"
                                             >
                                                 <FingerprintIcon className="h-3.5 w-3.5" />
                                                 Ler Rosto

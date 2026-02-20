@@ -84,7 +84,7 @@ export default function DriversPage() {
                     <h2 className="text-2xl font-bold text-slate-800">Motoristas</h2>
                     <p className="text-sm text-slate-500 mt-0.5">Equipe de condutores da frota</p>
                 </div>
-                <Link href="/drivers/new" className="inline-flex items-center gap-2 rounded-lg bg-[#0000FF] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0000CC] transition-colors">
+                <Link href="/drivers/new" className="inline-flex items-center gap-2 rounded-xl bg-[#0000FF] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0000DD] hover:shadow-md hover:shadow-blue-500/20 transition-all duration-200">
                     <PlusIcon className="h-4 w-4" /> Novo motorista
                 </Link>
             </div>

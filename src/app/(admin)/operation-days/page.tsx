@@ -36,7 +36,7 @@ export default function OperationDaysPage() {
                     <h2 className="text-2xl font-bold text-slate-800">Dias de Operação</h2>
                     <p className="text-sm text-slate-500 mt-0.5">Visão geral do planejamento diário de rotas</p>
                 </div>
-                <Link href="/operation-days/new" className="inline-flex items-center gap-2 rounded-lg bg-[#0000FF] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0000CC] transition-colors">
+                <Link href="/operation-days/new" className="inline-flex items-center gap-2 rounded-xl bg-[#0000FF] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#0000DD] hover:shadow-md hover:shadow-blue-500/20 transition-all duration-200">
                     <PlusIcon className="h-4 w-4" /> Planejar Novo Dia
                 </Link>
             </div>
